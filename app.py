@@ -1,18 +1,17 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import os
 
-# Debug: show files in directory
-st.write("Files in directory:", os.listdir())
-
+# Load trained objects
 model = joblib.load("fraud_model.pkl")
 scaler = joblib.load("scaler.pkl")
 model_columns = joblib.load("model_columns.pkl")
 
 st.set_page_config(page_title="Fraud Detection", layout="centered")
 st.title("💳 Credit Card Fraud Detection")
+st.write("Enter transaction details")
 
+# ---- USER INPUTS (ONLY REALISTIC FIELDS) ----
 amount = st.number_input("Transaction Amount", min_value=0.0)
 time = st.number_input("Transaction Time", min_value=0)
 
@@ -26,18 +25,17 @@ device_type = st.selectbox(
     ["mobile", "web", "pos"]
 )
 
-st.subheader("PCA Features (V1–V28)")
-pca = {}
-for i in range(1, 29):
-    pca[f"v{i}"] = st.number_input(f"V{i}", value=0.0)
+# ---- AUTO-FILL PCA FEATURES (V1–V28) ----
+pca_features = {f"v{i}": 0.0 for i in range(1, 29)}
 
+# ---- PREDICTION ----
 if st.button("Predict Fraud"):
     data = {
         "time": time,
         "amount": amount,
         "merchant_type": merchant_type,
         "device_type": device_type,
-        **pca
+        **pca_features
     }
 
     df = pd.DataFrame([data])
